@@ -9,6 +9,10 @@ on:
       upload-tag:
         type: string
         default: "nightly"
+      platforms:
+        description: "Comma-separated platforms to build (windows,linux,android,macos,ios,web,flatpak,appimage,sciter)"
+        type: string
+        default: "windows,linux,android,macos,ios,web,flatpak,appimage,sciter"
 
 # NOTE: F-Droid builder script 'flutter/build_fdroid.sh' reads environment
 # variables from this workflow!
@@ -52,6 +56,7 @@ jobs:
     uses: ./.github/workflows/bridge.yml
 
   build-RustDeskTempTopMostWindow:
+    if: ${{ contains(inputs.platforms, 'windows') }}
     uses: ./.github/workflows/third-party-RustDeskTempTopMostWindow.yml
     with:
       upload-artifact: ${{ inputs.upload-artifact }}
@@ -63,6 +68,7 @@ jobs:
       fail-fast: false
 
   build-for-windows-flutter:
+    if: ${{ contains(inputs.platforms, 'windows') }}
     name: ${{ matrix.job.target }}
     needs: [build-RustDeskTempTopMostWindow, generate-bridge]
     runs-on: ${{ matrix.job.os }}
@@ -283,6 +289,7 @@ jobs:
 
   # The fallback for the flutter version, we use Sciter for 32bit Windows.
   build-for-windows-sciter:
+    if: ${{ contains(inputs.platforms, 'windows') }}
     name: ${{ matrix.job.target }} (${{ matrix.job.os }})
     runs-on: ${{ matrix.job.os }}
     # Temporarily disable this action due to additional test is needed.
@@ -426,6 +433,7 @@ jobs:
             ./SignOutput/rustdesk-*.exe
 
   build-rustdesk-ios:
+    if: ${{ contains(inputs.platforms, 'ios') }}
     if: ${{ inputs.upload-artifact }}
     name: build rustdesk ios ipa
     runs-on: ${{ matrix.job.os }}
@@ -546,6 +554,7 @@ jobs:
 
 
   build-for-macOS:
+    if: ${{ contains(inputs.platforms, 'macos') }}
     name: ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.os }}
     needs: [generate-bridge]
@@ -753,6 +762,7 @@ jobs:
             rustdesk*-${{ matrix.job.arch }}.dmg
 
   publish_unsigned:
+    if: ${{ inputs.upload-artifact && contains(inputs.platforms, 'windows') && contains(inputs.platforms, 'macos') }}
     needs:
       - build-for-macOS
       - build-for-windows-flutter
@@ -789,6 +799,7 @@ jobs:
           files: rustdesk-${{ env.VERSION }}-unsigned.tar.gz
 
   build-rustdesk-android:
+    if: ${{ contains(inputs.platforms, 'android') }}
     needs: [generate-bridge]
     name: build rustdesk android apk ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.os }}
@@ -1079,6 +1090,7 @@ jobs:
             signed-apk/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}.apk
 
   build-rustdesk-android-universal:
+    if: ${{ contains(inputs.platforms, 'android') }}
     needs: [build-rustdesk-android]
     name: build rustdesk android universal apk
     if: ${{ inputs.upload-artifact }}
@@ -1261,6 +1273,7 @@ jobs:
             signed-apk/rustdesk-${{ env.VERSION }}-universal${{ env.suffix }}.apk
 
   build-rustdesk-linux:
+    if: ${{ contains(inputs.platforms, 'linux') }}
     needs: [generate-bridge]
     name: build rustdesk linux ${{ matrix.job.target }}
     runs-on: ${{ matrix.job.on }}
@@ -1597,6 +1610,7 @@ jobs:
             res/rustdesk-${{ env.VERSION }}*.zst
 
   build-rustdesk-linux-sciter:
+    if: ${{ contains(inputs.platforms, 'sciter') || contains(inputs.platforms, 'linux') }}
     if: ${{ inputs.upload-artifact }}
     runs-on: ${{ matrix.job.on }}
     name: build-rustdesk-linux-sciter ${{ matrix.job.target }}
@@ -1823,6 +1837,7 @@ jobs:
           path: rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}-sciter.deb
 
   build-appimage:
+    if: ${{ contains(inputs.platforms, 'appimage') }}
     name: Build appimage ${{ matrix.job.target }}
     needs: [build-rustdesk-linux]
     runs-on: ubuntu-22.04
@@ -1873,6 +1888,7 @@ jobs:
             ./appimage/rustdesk-${{ env.VERSION }}-*.AppImage
 
   build-flatpak:
+    if: ${{ contains(inputs.platforms, 'flatpak') }}
     name: Build flatpak ${{ matrix.job.target }}${{ matrix.job.suffix }}
     needs:
       - build-rustdesk-linux
@@ -1958,6 +1974,7 @@ jobs:
             flatpak/rustdesk-${{ env.VERSION }}-${{ matrix.job.arch }}${{ matrix.job.suffix }}.flatpak
 
   build-rustdesk-web:
+    if: ${{ contains(inputs.platforms, 'web') }}
     if: False
     name: build-rustdesk-web
     runs-on: ubuntu-22.04
