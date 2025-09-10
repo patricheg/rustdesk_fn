@@ -209,7 +209,7 @@ jobs:
               Write-Host "Ingore the printer driver error."
           }
 
-     - name: Upload Windows artifacts (Actions)
+      - name: Upload Windows artifacts (Actions)
         if: env.UPLOAD_ARTIFACT == 'true'
         uses: actions/upload-artifact@v4
         with:
